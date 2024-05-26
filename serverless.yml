@@ -1,0 +1,15 @@
+service: test-api
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: nodejs16.x
+  region: us-west-2
+
+functions:
+  login:
+    handler: handlers/login.handler
+    events:
+      - http: 
+          path: /login
+          method: get
