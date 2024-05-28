@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "mysql2": "^3.9.8",
     "stringify": "^5.2.0"
   }
 }
