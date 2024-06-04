@@ -8,6 +8,8 @@
 const mysqlDB = require('../utils/sql');
 const bcrypt = require('bcryptjs');
 
+const { DB_HOST, DB_USER, DB_PASSWORD, DB_NAME, DB_PORT } = process.env;
+
 function createResponse(statusCode, message) {
     return {
         statusCode: statusCode,
@@ -25,11 +27,11 @@ async function verifyPassword(password, storedHash) {
 
 exports.handler = async (event) => {
     const connectionConfig = {
-        host: 'monorail.proxy.rlwy.net',
-        user: 'root',
-        password: 'pYsEeaEJbAWyAUBDStfstBKVXyRdOrtK',
-        database: 'railway',
-        port: '27406'
+        host: DB_HOST,
+        user: DB_USER,
+        password: DB_PASSWORD,
+        database: DB_NAME,
+        port: DB_PORT
     };
 
     let connection;
@@ -48,7 +50,7 @@ exports.handler = async (event) => {
             if (username && password) {
                 const userExistsResult = await mysqlDB.getUser(connection, username);
                 console.log('userExistsResult:', userExistsResult)
-    
+
                 if (userExistsResult && await verifyPassword(password, userExistsResult.PASSWORD)) {
                     return createResponse(200, { message: 'Login exitoso' });
                 } else {

@@ -12,6 +12,8 @@ const bcrypt = require('bcryptjs');
 // const key = crypto.randomBytes(32);
 // const iv = crypto.randomBytes(16);
 
+const { DB_HOST, DB_USER, DB_PASSWORD, DB_NAME, DB_PORT } = process.env;
+
 function createResponse(statusCode, message) {
     return {
         statusCode: statusCode,
@@ -55,11 +57,11 @@ async function makeUser(user) {
 exports.handler = async (event, context, callback) => {
 
     const connectionConfig = {
-        host: 'monorail.proxy.rlwy.net',
-        user: 'root',
-        password: 'pYsEeaEJbAWyAUBDStfstBKVXyRdOrtK',
-        database: 'railway',
-        port: '27406'
+        host: DB_HOST,
+        user: DB_USER,
+        password: DB_PASSWORD,
+        database: DB_NAME,
+        port: DB_PORT
     };
 
     let connection;
