@@ -16,10 +16,15 @@ module.exports.tableExists = async (connection, tableName) => {
     return rows.length > 0;
 };
 
-module.exports.userExists = async (connection, username, password) => {
-    const [rows] = await connection.execute('SELECT * FROM APRENDICES WHERE USER_NAME = ? AND PASSWORD = ?', [username, password]);
-    return rows.length > 0;
-};
+// module.exports.userExists = async (connection, username, password) => {
+//     const [rows] = await connection.execute('SELECT * FROM APRENDICES WHERE USER_NAME = ? AND PASSWORD = ?', [username, password]);
+//     return rows.length > 0;
+// };
+
+module.exports.getUser= async (connection, username) => {
+    const [rows] = await connection.execute('SELECT * FROM APRENDICES WHERE USER_NAME = ?', [username]);
+    return rows.length > 0 ? rows[0] : null;
+}
 
 module.exports.userExistsInDB = async (connection, username) => {
     const [rows] = await connection.execute('SELECT * FROM APRENDICES WHERE USER_NAME = ?', [username]);

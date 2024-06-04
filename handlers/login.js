@@ -6,6 +6,7 @@
 */
 
 const mysqlDB = require('../utils/sql');
+const bcrypt = require('bcryptjs');
 
 function createResponse(statusCode, message) {
     return {
@@ -16,6 +17,10 @@ function createResponse(statusCode, message) {
         },
         body: JSON.stringify(message)
     };
+}
+
+async function verifyPassword(password, storedHash) {
+    return bcrypt.compare(password, storedHash);
 }
 
 exports.handler = async (event) => {
@@ -41,8 +46,10 @@ exports.handler = async (event) => {
             const { username, password } = event.queryStringParameters;
 
             if (username && password) {
-                const userExistsResult = await mysqlDB.userExists(connection, username, password);
-                if (userExistsResult) {
+                const userExistsResult = await mysqlDB.getUser(connection, username);
+                console.log('userExistsResult:', userExistsResult)
+    
+                if (userExistsResult && await verifyPassword(password, userExistsResult.PASSWORD)) {
                     return createResponse(200, { message: 'Login exitoso' });
                 } else {
                     return createResponse(400, { message: 'Nombre de usuario o contraseña incorrectos' });

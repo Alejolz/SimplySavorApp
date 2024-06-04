@@ -6,10 +6,11 @@
 */
 
 const mysqlDB = require('../utils/sql');
-const crypto = require('crypto');
+const bcrypt = require('bcryptjs');
+// const crypto = require('crypto');
 
-const key = crypto.randomBytes(32);
-const iv = crypto.randomBytes(16);
+// const key = crypto.randomBytes(32);
+// const iv = crypto.randomBytes(16);
 
 function createResponse(statusCode, message) {
     return {
@@ -30,13 +31,27 @@ function findMissingObligatoryFields(fields, obligatoryFields) {
     return obligatoryFields.filter(field => !fields.includes(field));
 }
 
-function encrypt(password) {
-    let cipher = crypto.createCipheriv('aes-256-cbc', Buffer.from(key), iv);
-    let encrypted = cipher.update(password);
-    encrypted = Buffer.concat([encrypted, cipher.final()]);
-    return encrypted.toString('hex');
+// async function encrypt(password) {
+//     let cipher = crypto.createCipheriv('aes-256-cbc', Buffer.from(key), iv);
+//     let encrypted = cipher.update(password);
+//     encrypted = Buffer.concat([encrypted, cipher.final()]);
+//     return encrypted.toString('hex');
 
+// }
+
+async function hashPassword(password) {
+    return bcrypt.hash(password, 10);
 }
+
+async function makeUser(user) {
+    return {
+        name: user.name,
+        username: user.username,
+        password: await hashPassword(user.password),
+        email: user.email
+    };
+}
+
 exports.handler = async (event, context, callback) => {
 
     const connectionConfig = {
@@ -62,8 +77,8 @@ exports.handler = async (event, context, callback) => {
                 return createResponse(404, { message: 'La tabla APRENDICES no existe en la base de datos' });
             }
 
-            if (user.password.trim().length > 20) {
-                return createResponse(400, { message: 'La contraseña no puede tener más de 20 caracteres' });
+            if (user.password.trim().length > 120) {
+                return createResponse(400, { message: 'La contraseña no puede tener más de 120 caracteres' });
             }
             let existUserName = await mysqlDB.userExistsInDB(connection, user.username);
             if (existUserName) {
@@ -84,7 +99,7 @@ exports.handler = async (event, context, callback) => {
 
         console.log('Paso validaciones')
 
-        const userDB = await mysqlDB.createUser(connection, user);
+        const userDB = await mysqlDB.createUser(connection, await makeUser(user));
 
         if (userDB) {
             return createResponse(200, { message: 'Usuario creado exitosamente' });
