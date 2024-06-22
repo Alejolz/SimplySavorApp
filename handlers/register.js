@@ -7,10 +7,7 @@
 
 const mysqlDB = require('../utils/sql');
 const bcrypt = require('bcryptjs');
-// const crypto = require('crypto');
-
-// const key = crypto.randomBytes(32);
-// const iv = crypto.randomBytes(16);
+const constants = require ('../constants')
 
 const { DB_HOST, DB_USER, DB_PASSWORD, DB_NAME, DB_PORT } = process.env;
 
@@ -25,6 +22,14 @@ function createResponse(statusCode, message) {
     };
 }
 
+function createSuccesfulObjectResponse(response, data = null){
+    return (successObj = {
+       code: response.code,
+       message: response.message,
+       data: !data ? {}: data
+    })
+}
+
 function isNullOrEmpty(obj) {
     return obj === undefined || obj === null || obj == NaN || obj === '';
 }
@@ -32,13 +37,6 @@ function isNullOrEmpty(obj) {
 function findMissingObligatoryFields(fields, obligatoryFields) {
     return obligatoryFields.filter(field => !fields.includes(field));
 }
-
-// async function encrypt(password) {
-//     let cipher = crypto.createCipheriv('aes-256-cbc', Buffer.from(key), iv);
-//     let encrypted = cipher.update(password);
-//     encrypted = Buffer.concat([encrypted, cipher.final()]);
-//     return encrypted.toString('hex');
-// }
 
 async function hashPassword(password) {
     return bcrypt.hash(password, 10);
@@ -59,6 +57,7 @@ async function makeUser(user) {
 
 exports.handler = async (event, context, callback) => {
 
+    console.log ('EVENT', event)
     const connectionConfig = {
         host: DB_HOST,
         user: DB_USER,
@@ -77,13 +76,8 @@ exports.handler = async (event, context, callback) => {
 
         if (!isNullOrEmpty(user)) {
 
-            // const tableExistsResult = await mysqlDB.tableExists(connection, 'APRENDICES');
-            // if (!tableExistsResult) {
-            //     return createResponse(404, { message: 'La tabla APRENDICES no existe en la base de datos' });
-            // }
-
             if (user.password.trim().length > 120) {
-                return createResponse(200, { message: 'La contraseña no puede tener más de 120 caracteres' });
+                return createResponse(200, constants.error_messages.format_errors.wrong_password_extension);
             }
             let existUserName = await mysqlDB.userExistsInDB(connection, user.email);
             if (existUserName) {
@@ -107,14 +101,19 @@ exports.handler = async (event, context, callback) => {
         const userDB = await mysqlDB.createUser(connection, await makeUser(user));
 
         if (userDB) {
-            return createResponse(200, { message: 'Usuario creado exitosamente' });
+            return createResponse(200, 
+                createSuccesfulObjectResponse(
+                    constants.succesfull_response.success_register,
+                    userData
+                )
+            );
         } else {
             return createResponse(200, { message: 'Error al crear el usuario' });
         }
 
     } catch (e) {
-        console.error('Error durante la conexión a la base de datos o procesamiento:', e);
-        return createResponse(500, { message: 'Error interno del servidor' });
+        console.error('Entra catch, error interno del servidor:', e);
+        return createResponse(500, constants.error_messages.business_errors.internal_server_error);
     } finally {
         if (connection) {
             await connection.end();

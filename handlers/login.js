@@ -7,18 +7,35 @@
 
 const mysqlDB = require('../utils/sql');
 const bcrypt = require('bcryptjs');
+const constants = require ('../constants')
+const uuid = require('uuid');
 
 const { DB_HOST, DB_USER, DB_PASSWORD, DB_NAME, DB_PORT } = process.env;
 
-function createResponse(statusCode, message) {
+function createResponse(statusCode, response) {
     return {
         statusCode: statusCode,
         headers: {
             "Content-Type": "application/json",
             "Access-Control-Allow-Origin": "*"
         },
-        body: JSON.stringify(message)
+        body: JSON.stringify(response)
     };
+}
+
+function createSuccesfulObjectResponse(response, data = null){
+    return (successObj = {
+       code: response.code,
+       message: response.message,
+       data: !data ? {}: data
+    })
+}
+
+function createErrorObjectResponse(code, message){
+    return (errorObj = {
+        code: code,
+        message: message
+    })
 }
 
 async function verifyPassword(password, storedHash) {
@@ -26,6 +43,8 @@ async function verifyPassword(password, storedHash) {
 }
 
 exports.handler = async (event) => {
+
+    console.log ('EVENT', event)
     const connectionConfig = {
         host: DB_HOST,
         user: DB_USER,
@@ -39,11 +58,6 @@ exports.handler = async (event) => {
     try {
         connection = await mysqlDB.createConnection(connectionConfig);
 
-        // const tableExistsResult = await mysqlDB.tableExists(connection, 'APRENDICES');
-        // if (!tableExistsResult) {
-        //     return createResponse(404, { message: 'La tabla APRENDICES no existe en la base de datos' });
-        // }
-
         if (event.queryStringParameters) {
             const { email, password } = event.queryStringParameters;
 
@@ -52,22 +66,43 @@ exports.handler = async (event) => {
                 // console.log('userExistsResult:', userExistsResult)
 
                 if (userExistsResult && await verifyPassword(password, userExistsResult.PASSWORD)) {
-                    return createResponse(200, { message: 'Login exitoso' });
+                    const userData = makeUserResponse(userExistsResult)
+                    return createResponse(200, 
+                        createSuccesfulObjectResponse(
+                            constants.succesfull_response.success_login,
+                            userData
+                        )
+                    );
                 } else {
-                    return createResponse(200, { message: 'Email o contraseña incorrectos' });
+                    return createResponse(200, constants.error_messages.business_errors.incorrect_credentials);
                 }
             } else {
-                return createResponse(200, { message: 'Se requiere email y contraseña' });
+                return createResponse(200, constants.error_messages.business_errors.missing_parameters);
             }
         } else {
-            return createResponse(200, { message: 'No se proporcionaron parámetros en el query string' });
+            return createResponse(200, constants.error_messages.business_errors.missing_query_parameters);
         }
     } catch (e) {
-        console.error('Error durante la conexión a la base de datos o procesamiento:', e);
-        return createResponse(500, { message: 'Error interno del servidor' });
+        console.error('Entra catch, error interno del servidor:', e);
+        return createResponse(500, constants.error_messages.business_errors.internal_server_error);
     } finally {
         if (connection) {
             await connection.end();
         }
     }
 };
+
+function makeUserResponse(user) {
+    const userResponse = {
+        sessionKey: uuid.v4(),
+        user: {
+            userName: user.NAME,
+            userAge: user.EDAD,
+            userEmail: user.EMAIL,
+            userBirthdate: user.FECHA_NACIMIENTO,
+            userIdentification: user.NUMERO_IDENTIFICACION,
+            userPhone: user.TELEFONO,
+        }
+    };
+    return userResponse;
+}
