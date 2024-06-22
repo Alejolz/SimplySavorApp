@@ -20,3 +20,10 @@ functions:
       - http: 
           path: /register
           method: post
+  getAllRecipes:
+    handler: handlers/getAllRecipes.handler
+    events:
+      - http: 
+          path: /get-all-recipes
+          method: get
+  

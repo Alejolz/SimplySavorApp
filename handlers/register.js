@@ -81,7 +81,7 @@ exports.handler = async (event, context, callback) => {
             }
             let existUserName = await mysqlDB.userExistsInDB(connection, user.email);
             if (existUserName) {
-                return createResponse(200, { message: 'Email ya se encuentra registrado' });
+                return createResponse(200, constants.error_messages.business_errors.user_already_exist);
             }
 
             let missingFields = findMissingObligatoryFields(Object.getOwnPropertyNames(user), obligatoryFields);
@@ -104,7 +104,7 @@ exports.handler = async (event, context, callback) => {
             return createResponse(200, 
                 createSuccesfulObjectResponse(
                     constants.succesfull_response.success_register,
-                    userData
+                    userDB
                 )
             );
         } else {

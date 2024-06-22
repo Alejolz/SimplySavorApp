@@ -1,12 +1,12 @@
 module.exports.error_messages = {
     format_errors: {
-       wrong_password_extension: {
+        wrong_password_extension: {
             code: 'FE01',
             message: 'La contraseña no puede tener más de 120 caracteres'
-       }
+        }
     },
     logic_errors: {
-       
+
     },
     business_errors: {
         internal_server_error: {
@@ -24,7 +24,12 @@ module.exports.error_messages = {
         missing_query_parameters: {
             code: 'BE04',
             message: 'No se proporcionaron parámetros en el query string'
-        }
+        },
+        user_already_exist: {
+            code: 'BE05',
+            message: 'Email ya se encuentra registrado'
+        },
+        
     }
 
 }
@@ -37,5 +42,11 @@ module.exports.succesfull_response = {
     success_register: {
         code: 'SR02',
         message: 'Usuario creado exitosamente'
+    }
+}
+
+module.exports.recipes_response = {
+    get_all_recipies_correct: {
+        message: 'Se obtuvo la lista de recetas correctamente'
     }
 }
