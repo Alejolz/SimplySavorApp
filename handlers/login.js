@@ -39,32 +39,32 @@ exports.handler = async (event) => {
     try {
         connection = await mysqlDB.createConnection(connectionConfig);
 
-        const tableExistsResult = await mysqlDB.tableExists(connection, 'APRENDICES');
-        if (!tableExistsResult) {
-            return createResponse(404, { message: 'La tabla APRENDICES no existe en la base de datos' });
-        }
+        // const tableExistsResult = await mysqlDB.tableExists(connection, 'APRENDICES');
+        // if (!tableExistsResult) {
+        //     return createResponse(404, { message: 'La tabla APRENDICES no existe en la base de datos' });
+        // }
 
         if (event.queryStringParameters) {
-            const { username, password } = event.queryStringParameters;
+            const { email, password } = event.queryStringParameters;
 
-            if (username && password) {
-                const userExistsResult = await mysqlDB.getUser(connection, username);
-                console.log('userExistsResult:', userExistsResult)
+            if (email && password) {
+                const userExistsResult = await mysqlDB.getUser(connection, email);
+                // console.log('userExistsResult:', userExistsResult)
 
                 if (userExistsResult && await verifyPassword(password, userExistsResult.PASSWORD)) {
                     return createResponse(200, { message: 'Login exitoso' });
                 } else {
-                    return createResponse(400, { message: 'Nombre de usuario o contraseña incorrectos' });
+                    return createResponse(200, { message: 'Email o contraseña incorrectos' });
                 }
             } else {
-                return createResponse(400, { message: 'Se requiere nombre de usuario y contraseña' });
+                return createResponse(200, { message: 'Se requiere email y contraseña' });
             }
         } else {
             return createResponse(200, { message: 'No se proporcionaron parámetros en el query string' });
         }
     } catch (e) {
         console.error('Error durante la conexión a la base de datos o procesamiento:', e);
-        return createResponse(500, { message: 'Error interno del servidor al ejecutar' });
+        return createResponse(500, { message: 'Error interno del servidor' });
     } finally {
         if (connection) {
             await connection.end();

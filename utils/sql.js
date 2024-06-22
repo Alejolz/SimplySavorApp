@@ -21,17 +21,18 @@ module.exports.tableExists = async (connection, tableName) => {
 //     return rows.length > 0;
 // };
 
-module.exports.getUser= async (connection, username) => {
-    const [rows] = await connection.execute('SELECT * FROM APRENDICES WHERE USER_NAME = ?', [username]);
+module.exports.getUser = async (connection, email) => {
+    const [rows] = await connection.execute('SELECT * FROM APRENDICES WHERE EMAIL = ?', [email]);
     return rows.length > 0 ? rows[0] : null;
 }
 
-module.exports.userExistsInDB = async (connection, username) => {
-    const [rows] = await connection.execute('SELECT * FROM APRENDICES WHERE USER_NAME = ?', [username]);
+module.exports.userExistsInDB = async (connection, email) => {
+    const [rows] = await connection.execute('SELECT * FROM APRENDICES WHERE EMAIL = ?', [email]);
     return rows.length > 0;
 }
 
 module.exports.createUser = async (connection, user) => {
-    const [rows] = await connection.execute('INSERT INTO APRENDICES (NAME, USER_NAME, PASSWORD, EMAIL) VALUES (?, ?, ?, ?)', [user.name, user.username, user.password, user.email]);
+    const [rows] = await connection.execute('INSERT INTO APRENDICES (NAME, PASSWORD, EMAIL, TIPO_IDENTIFICACION, NUMERO_IDENTIFICACION, EDAD, TELEFONO, FECHA_NACIMIENTO) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+        [user.name, user.password, user.email, user.identificationType, user.identificationNumber, user.age, user.number, user.birthdate]);
     return rows.affectedRows > 0;
 }

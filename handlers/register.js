@@ -38,7 +38,6 @@ function findMissingObligatoryFields(fields, obligatoryFields) {
 //     let encrypted = cipher.update(password);
 //     encrypted = Buffer.concat([encrypted, cipher.final()]);
 //     return encrypted.toString('hex');
-
 // }
 
 async function hashPassword(password) {
@@ -48,9 +47,13 @@ async function hashPassword(password) {
 async function makeUser(user) {
     return {
         name: user.name,
-        username: user.username,
         password: await hashPassword(user.password),
-        email: user.email
+        email: user.email,
+        identificationType: user.identificationType,
+        identificationNumber: user.identificationNumber,
+        age: user.age,
+        number: user.number,
+        birthdate: user.birthdate
     };
 }
 
@@ -70,33 +73,33 @@ exports.handler = async (event, context, callback) => {
 
         connection = await mysqlDB.createConnection(connectionConfig);
         let user = JSON.parse(event.body);
-        let obligatoryFields = ['name', 'username', 'password', 'email']
+        let obligatoryFields = ['name', 'password', 'email', 'identificationType', 'identificationNumber', 'age', 'number', 'birthdate']
 
         if (!isNullOrEmpty(user)) {
 
-            const tableExistsResult = await mysqlDB.tableExists(connection, 'APRENDICES');
-            if (!tableExistsResult) {
-                return createResponse(404, { message: 'La tabla APRENDICES no existe en la base de datos' });
-            }
+            // const tableExistsResult = await mysqlDB.tableExists(connection, 'APRENDICES');
+            // if (!tableExistsResult) {
+            //     return createResponse(404, { message: 'La tabla APRENDICES no existe en la base de datos' });
+            // }
 
             if (user.password.trim().length > 120) {
-                return createResponse(400, { message: 'La contraseña no puede tener más de 120 caracteres' });
+                return createResponse(200, { message: 'La contraseña no puede tener más de 120 caracteres' });
             }
-            let existUserName = await mysqlDB.userExistsInDB(connection, user.username);
+            let existUserName = await mysqlDB.userExistsInDB(connection, user.email);
             if (existUserName) {
-                return createResponse(400, { message: 'El usuario ya existe' });
+                return createResponse(200, { message: 'Email ya se encuentra registrado' });
             }
 
             let missingFields = findMissingObligatoryFields(Object.getOwnPropertyNames(user), obligatoryFields);
 
             if (missingFields.length > 0) {
-                return createResponse(400, { message: 'Faltan campos obligatorios: ' + missingFields.join(', ') });
+                return createResponse(200, { message: 'Faltan campos obligatorios: ' + missingFields.join(', ') });
             }
 
 
         } else {
 
-            return createResponse(400, { message: 'No se encontro body en el request enviado' });
+            return createResponse(200, { message: 'No se encontro body en el request enviado' });
         }
 
         console.log('Paso validaciones')
@@ -106,12 +109,12 @@ exports.handler = async (event, context, callback) => {
         if (userDB) {
             return createResponse(200, { message: 'Usuario creado exitosamente' });
         } else {
-            return createResponse(400, { message: 'Error al crear el usuario' });
+            return createResponse(200, { message: 'Error al crear el usuario' });
         }
 
     } catch (e) {
         console.error('Error durante la conexión a la base de datos o procesamiento:', e);
-        return createResponse(500, { message: 'Error interno del servidor al ejecutar' });
+        return createResponse(500, { message: 'Error interno del servidor' });
     } finally {
         if (connection) {
             await connection.end();
