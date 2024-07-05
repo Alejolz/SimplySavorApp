@@ -68,7 +68,7 @@ exports.handler = async (event) => {
             return createResponse(200, constants.error_messages.business_errors.missing_parameters);
         }
 
-        let existUserName = await mysqlDB.userExistsInDB(connection, user.email);
+        let existUserName = await mysqlDB.userExistsInDB(connection, email);
         if (!existUserName) {
             return createResponse(200, constants.error_messages.business_errors.incorrect_email);
         }
