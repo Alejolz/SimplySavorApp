@@ -7,7 +7,7 @@
 
 const mysqlDB = require('../utils/sql');
 const bcrypt = require('bcryptjs');
-const constants = require ('../constants')
+const constants = require('../constants')
 const uuid = require('uuid');
 
 const { DB_HOST, DB_USER, DB_PASSWORD, DB_NAME, DB_PORT } = process.env;
@@ -23,15 +23,15 @@ function createResponse(statusCode, response) {
     };
 }
 
-function createSuccesfulObjectResponse(response, data = null){
+function createSuccesfulObjectResponse(response, data = null) {
     return (successObj = {
-       code: response.code,
-       message: response.message,
-       data: !data ? {}: data
+        code: response.code,
+        message: response.message,
+        data: !data ? {} : data
     })
 }
 
-function createErrorObjectResponse(code, message){
+function createErrorObjectResponse(code, message) {
     return (errorObj = {
         code: code,
         message: message
@@ -43,8 +43,8 @@ async function verifyPassword(password, storedHash) {
 }
 
 exports.handler = async (event) => {
+    console.log('EVENT', event);
 
-    console.log ('EVENT', event)
     const connectionConfig = {
         host: DB_HOST,
         user: DB_USER,
@@ -58,30 +58,34 @@ exports.handler = async (event) => {
     try {
         connection = await mysqlDB.createConnection(connectionConfig);
 
-        if (event.queryStringParameters) {
-            const { email, password } = event.queryStringParameters;
-
-            if (email && password) {
-                const userExistsResult = await mysqlDB.getUser(connection, email);
-                // console.log('userExistsResult:', userExistsResult)
-
-                if (userExistsResult && await verifyPassword(password, userExistsResult.PASSWORD)) {
-                    const userData = makeUserResponse(userExistsResult)
-                    return createResponse(200, 
-                        createSuccesfulObjectResponse(
-                            constants.succesfull_response.success_login,
-                            userData
-                        )
-                    );
-                } else {
-                    return createResponse(200, constants.error_messages.business_errors.incorrect_credentials);
-                }
-            } else {
-                return createResponse(200, constants.error_messages.business_errors.missing_parameters);
-            }
-        } else {
+        if (!event.queryStringParameters) {
             return createResponse(200, constants.error_messages.business_errors.missing_query_parameters);
         }
+
+        const { email, password } = event.queryStringParameters;
+
+        if (!email || !password) {
+            return createResponse(200, constants.error_messages.business_errors.missing_parameters);
+        }
+
+        let existUserName = await mysqlDB.userExistsInDB(connection, user.email);
+        if (!existUserName) {
+            return createResponse(200, constants.error_messages.business_errors.incorrect_email);
+        }
+
+        const userExistsResult = await mysqlDB.getUser(connection, email);
+
+        if (!userExistsResult || !await verifyPassword(password, userExistsResult.PASSWORD)) {
+            return createResponse(200, constants.error_messages.business_errors.incorrect_password);
+        }
+
+        const userData = makeUserResponse(userExistsResult);
+        return createResponse(200,
+            createSuccesfulObjectResponse(
+                constants.succesfull_response.success_login,
+                userData
+            )
+        );
     } catch (e) {
         console.error('Entra catch, error interno del servidor:', e);
         return createResponse(500, constants.error_messages.business_errors.internal_server_error);

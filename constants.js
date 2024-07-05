@@ -17,16 +17,20 @@ module.exports.error_messages = {
             code: 'BE02',
             message: 'Se requiere email y contraseña'
         },
-        incorrect_credentials: {
+        incorrect_email: {
             code: 'BE03',
-            message: 'Email o contraseña incorrectos'
+            message: 'Email incorrecto'
+        },
+        incorrect_password: {
+            code: 'BE04',
+            message: 'Contraseña incorrecta'
         },
         missing_query_parameters: {
-            code: 'BE04',
+            code: 'BE05',
             message: 'No se proporcionaron parámetros en el query string'
         },
         user_already_exist: {
-            code: 'BE05',
+            code: 'BE06',
             message: 'Email ya se encuentra registrado'
         },
         
