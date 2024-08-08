@@ -46,6 +46,10 @@ module.exports.succesfull_response = {
     success_register: {
         code: 'SR02',
         message: 'Usuario creado exitosamente'
+    },
+    success_edit: {
+        code: 'SR01',
+        message: 'Usuario editado correctamente'
     }
 }
 

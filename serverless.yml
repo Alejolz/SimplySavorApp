@@ -20,6 +20,12 @@ functions:
       - http: 
           path: /register
           method: post
+  editUser:
+    handler: handlers/editUser.handler
+    events:
+      - http: 
+          path: /edit-user/{email}
+          method: post
   getAllRecipes:
     handler: handlers/getAllRecipes.handler
     events:

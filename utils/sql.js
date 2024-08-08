@@ -31,3 +31,11 @@ module.exports.createUser = async (connection, user) => {
         [user.name, user.password, user.email, user.identificationType, user.identificationNumber, user.age, user.number, user.birthdate]);
     return rows.affectedRows > 0;
 }
+
+module.exports.editUser = async (connection, user, oldEmail) => {
+    const [rows] = await connection.execute('UPDATE APRENDICES SET NAME = ?, EMAIL = ?, TELEFONO = ?, EDAD = ?  WHERE EMAIL = ?', 
+        [user.newName, user.newEmail, user.newNumber, user.newAge, oldEmail ]);
+    return rows.affectedRows > 0;
+}
+
+
